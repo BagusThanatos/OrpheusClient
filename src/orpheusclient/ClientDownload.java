@@ -16,6 +16,9 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+
 
 /**
  *
@@ -64,7 +67,18 @@ public class ClientDownload {
             } while(bytesRead > -1);
             bos.write(mybytearray, 0 , current);
             bos.flush();
+            unzip(f);
         } catch (IOException ex) {
+            Logger.getLogger(ClientDownload.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }
+    public void unzip(File f){
+        try {
+            String destination = "D:/albums/"+d.getA().getNamaAlbum()+"/";
+            ZipFile zip = new ZipFile(f);
+            zip.extractAll(destination);
+        } catch (ZipException ex) {
             Logger.getLogger(ClientDownload.class.getName()).log(Level.SEVERE, null, ex);
         }
         

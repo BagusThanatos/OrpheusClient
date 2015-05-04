@@ -5,6 +5,10 @@
  */
 package orpheusclient;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.media.Media;
@@ -12,6 +16,8 @@ import javafx.scene.media.MediaPlayer;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javazoom.jl.decoder.JavaLayerException;
+import javazoom.jl.player.Player;
 
 /**
  *
@@ -22,13 +28,35 @@ public class PlayerGUI extends javax.swing.JFrame {
     /**
      * Creates new form PlayerGUI
      */
+    int index=0;
+    MP3Player p=null;
     Media m;
     MediaPlayer mp;
-    
+    private ArrayList<File> files = new ArrayList();
     private static PlayerGUI l= createInstance();
     
     public static PlayerGUI getInstance(){
         return l;
+    }
+    public void listFiles(){
+        files.clear();
+        walk("D:/albums");
+    }
+    private void walk(String path){
+        File root = new File(path);
+        File[] list = root.listFiles();
+        
+        if (list == null) return;
+
+        for ( File f : list ) {
+            if ( f.isDirectory() ) {
+                walk( f.getAbsolutePath() );
+               
+            }
+            else {
+                if(f.getName().contains(".mp3")) files.add(f);
+            }
+        }
     }
     
     private static PlayerGUI createInstance(){
@@ -86,18 +114,43 @@ public class PlayerGUI extends javax.swing.JFrame {
 
         buttonGroup1.add(player_play);
         player_play.setText("play");
+        player_play.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                player_playActionPerformed(evt);
+            }
+        });
 
         buttonGroup1.add(player_pause);
         player_pause.setText("pause");
+        player_pause.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                player_pauseActionPerformed(evt);
+            }
+        });
 
         buttonGroup1.add(player_next);
         player_next.setText("next");
+        player_next.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                player_nextActionPerformed(evt);
+            }
+        });
 
         buttonGroup1.add(player_prev);
         player_prev.setText("prev");
+        player_prev.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                player_prevActionPerformed(evt);
+            }
+        });
 
         buttonGroup1.add(player_stop);
         player_stop.setText("stop");
+        player_stop.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                player_stopActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -137,6 +190,43 @@ public class PlayerGUI extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void player_playActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_player_playActionPerformed
+        if (p==null || !p.isAlive()) p= new MP3Player();
+        else if (!p.isInterrupted()) {
+            p.resume();
+            return;
+        }
+        p.setFile(files.get(index));
+        p.start();
+        songtitle.setText(files.get(index).getName());
+    }//GEN-LAST:event_player_playActionPerformed
+
+    private void player_pauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_player_pauseActionPerformed
+        if (p!=null) p.suspend();
+    }//GEN-LAST:event_player_pauseActionPerformed
+
+    private void player_nextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_player_nextActionPerformed
+        index++;
+        p.stop();
+        p= new MP3Player();
+        p.setFile(files.get(index));
+        songtitle.setText(files.get(index).getName());
+        p.start();
+    }//GEN-LAST:event_player_nextActionPerformed
+
+    private void player_prevActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_player_prevActionPerformed
+        index--;
+        p.stop();
+        p=new MP3Player();
+        p.setFile(files.get(index));
+        songtitle.setText(files.get(index).getName());
+        p.start();
+    }//GEN-LAST:event_player_prevActionPerformed
+
+    private void player_stopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_player_stopActionPerformed
+        p.stop();
+    }//GEN-LAST:event_player_stopActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -167,7 +257,9 @@ public class PlayerGUI extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                PlayerGUI.getInstance().setVisible(true);
+                PlayerGUI p = PlayerGUI.getInstance();
+                p.listFiles();
+                p.setVisible(true);
             }
         });
     }
